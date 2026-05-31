@@ -1,0 +1,2500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CodeQuest — Seek the Optimal Path from Beginner to Expert Coder</title>
+  <meta name="description" content="A state-of-the-art gamified coding platform with interactive challenges, AI mentoring, and safe in-browser code execution.">
+  
+  <!-- ==========================================================================
+       CSS Styling (Design System Core & Visual Tokens)
+       ========================================================================== -->
+  <style>
+    /* Import Outfit and Fira Code from Google Fonts */
+    @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Outfit:wght@300;400;500;600;700;800&display=swap');
+
+    :root {
+      /* Color System */
+      --bg-deep-space: hsl(240, 12%, 3%);
+      --bg-nebula-glow: radial-gradient(circle at 50% 50%, hsl(260, 25%, 8%) 0%, var(--bg-deep-space) 80%);
+      --panel-glass: rgba(10, 10, 14, 0.45);
+      --panel-glass-hover: rgba(16, 16, 24, 0.55);
+      --border-glass: rgba(255, 255, 255, 0.06);
+      --border-glass-glow: rgba(168, 85, 247, 0.3);
+      
+      /* Accent Colors */
+      --accent-purple: hsl(271, 91%, 65%);
+      --accent-cyan: hsl(190, 90%, 50%);
+      --accent-amber: hsl(40, 95%, 55%);
+      --accent-rose: hsl(340, 90%, 60%);
+      --text-primary: hsl(0, 0%, 98%);
+      --text-secondary: hsl(240, 5%, 65%);
+      --text-muted: hsl(240, 4%, 45%);
+      
+      /* Glow Shadows */
+      --glow-purple: 0 0 30px hsla(271, 91%, 65%, 0.25);
+      --glow-cyan: 0 0 30px hsla(190, 90%, 50%, 0.25);
+      --glow-amber: 0 0 30px hsla(40, 95%, 55%, 0.25);
+      --eclipse-glow: 0 0 50px 10px hsla(271, 91%, 65%, 0.35),
+                      0 0 100px 30px hsla(190, 90%, 50%, 0.15);
+      
+      /* Font Families */
+      --font-sans: 'Outfit', sans-serif;
+      --font-mono: 'Fira Code', monospace;
+      
+      /* Layout Constants */
+      --header-height: 72px;
+      --sidebar-width: 260px;
+      
+      /* Transition Constants */
+      --transition-smooth: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      --transition-fast: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* Reset & Scrollbar */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      outline: none;
+    }
+
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--bg-deep-space);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--accent-purple);
+    }
+
+    /* Hide standard cursor globally */
+    body, a, button, [role="button"], input, textarea, .eclipse-orb, .eclipse-scroll-btn {
+      cursor: none !important;
+    }
+
+    /* Keep standard text cursor active inside code text editor panels */
+    .monaco-container-mount, .monaco-editor, .monaco-editor * {
+      cursor: auto !important;
+    }
+
+    /* Trailing custom hollow cursor */
+    #custom-cursor {
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(255, 255, 255, 0.7);
+      border-radius: 50%;
+      position: fixed;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+      z-index: 999999;
+      transform: translate(-50%, -50%);
+      opacity: 1;
+      box-shadow: 0 0 8px rgba(255, 255, 255, 0.1);
+      transition: width 0.22s cubic-bezier(0.19, 1, 0.22, 1), 
+                  height 0.22s cubic-bezier(0.19, 1, 0.22, 1), 
+                  background-color 0.22s cubic-bezier(0.19, 1, 0.22, 1),
+                  border-color 0.22s cubic-bezier(0.19, 1, 0.22, 1),
+                  box-shadow 0.22s cubic-bezier(0.19, 1, 0.22, 1),
+                  opacity 0.2s ease;
+    }
+
+    #custom-cursor.hover {
+      width: 32px;
+      height: 32px;
+      background-color: rgba(255, 255, 255, 0.08);
+      border-color: #fff;
+      box-shadow: 0 0 16px rgba(255, 255, 255, 0.35);
+    }
+
+    #custom-cursor.hover-purple {
+      width: 34px;
+      height: 34px;
+      border-color: var(--accent-purple);
+      background-color: rgba(168, 85, 247, 0.06);
+      box-shadow: 0 0 20px hsla(271, 91%, 65%, 0.45);
+    }
+
+    #custom-cursor.hover-cyan {
+      width: 34px;
+      height: 34px;
+      border-color: var(--accent-cyan);
+      background-color: rgba(6, 182, 212, 0.06);
+      box-shadow: 0 0 20px hsla(190, 90%, 50%, 0.45);
+    }
+
+    #custom-cursor.hover-amber {
+      width: 34px;
+      height: 34px;
+      border-color: var(--accent-amber);
+      background-color: rgba(245, 158, 11, 0.06);
+      box-shadow: 0 0 20px hsla(40, 95%, 55%, 0.45);
+    }
+
+    #custom-cursor.hidden {
+      opacity: 0;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg-deep-space);
+      background-image: var(--bg-nebula-glow);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Starfield Overlay background */
+    #starfield {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.8;
+    }
+
+    /* Base Layout Framework */
+    #app-container {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ==========================================================================
+       Header Component
+       ========================================================================== */
+    header {
+      height: var(--header-height);
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 40px;
+      border-bottom: 1px solid var(--border-glass);
+      background: rgba(8, 8, 12, 0.4);
+      backdrop-filter: blur(16px);
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 100;
+    }
+
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    .logo-orb {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #000;
+      border: 1.5px solid var(--accent-amber);
+      box-shadow: 0 0 12px hsla(40, 95%, 55%, 0.4);
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .logo-text {
+      font-size: 1.15rem;
+      font-weight: 800;
+      letter-spacing: 0.2px;
+      background: linear-gradient(135deg, #fff 40%, var(--text-secondary) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    nav {
+      display: flex;
+      gap: 14px;
+    }
+
+    .nav-link {
+      color: var(--text-secondary);
+      text-decoration: none;
+      padding: 8px 22px;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 500;
+      transition: var(--transition-smooth);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: transparent;
+    }
+
+    .nav-link:hover {
+      color: var(--text-primary);
+      border-color: rgba(255, 255, 255, 0.35);
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .nav-link.active {
+      color: var(--text-primary);
+      border-color: var(--text-primary);
+      background: rgba(255, 255, 255, 0.06);
+      box-shadow: 0 0 15px rgba(255, 255, 255, 0.05);
+    }
+
+    .user-status {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .streak-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 99px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      background: rgba(245, 158, 11, 0.08);
+      border: 1px solid rgba(245, 158, 11, 0.2);
+      color: var(--accent-amber);
+      box-shadow: var(--glow-amber);
+    }
+
+    .xp-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 99px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      background: rgba(6, 182, 212, 0.08);
+      border: 1px solid rgba(6, 182, 212, 0.2);
+      color: var(--accent-cyan);
+      box-shadow: var(--glow-cyan);
+    }
+
+    /* ==========================================================================
+       Page Layout System (SPA Views)
+       ========================================================================== */
+    .view-container {
+      flex: 1;
+      padding-top: var(--header-height);
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .view-section {
+      display: none;
+      opacity: 0;
+      transform: translateY(12px);
+      transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1), transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+      width: 100%;
+      flex: 1;
+    }
+
+    .view-section.active {
+      display: flex;
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ==========================================================================
+       Hero / Landing View Styles
+       ========================================================================== */
+    .hero-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+      text-align: center;
+      max-width: 1000px;
+      margin: 0 auto;
+      min-height: calc(100vh - var(--header-height));
+      position: relative;
+    }
+
+    .hero-title-wrapper {
+      position: relative;
+      width: 100%;
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .title-bg {
+      font-family: var(--font-sans);
+      font-size: 6.5rem;
+      font-weight: 900;
+      letter-spacing: -2px;
+      text-transform: uppercase;
+      color: transparent;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.09) 0%, rgba(255, 255, 255, 0.01) 100%);
+      -webkit-background-clip: text;
+      position: absolute;
+      z-index: 1;
+      user-select: none;
+      filter: blur(1px);
+      pointer-events: none;
+      
+      /* Chromatic aberration shadows */
+      text-shadow: 
+        -2px 0 0 rgba(255, 0, 80, 0.35),
+        2px 0 0 rgba(0, 240, 255, 0.35);
+      animation: glitchText 8s infinite alternate ease-in-out;
+    }
+
+    /* 3D Glass Eclipse Sphere */
+    .eclipse-container {
+      position: relative;
+      width: 220px;
+      height: 220px;
+      z-index: 10;
+      margin: 40px 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Corona Blur glow */
+    .eclipse-corona {
+      position: absolute;
+      top: -15px;
+      left: -15px;
+      right: -15px;
+      bottom: -15px;
+      border-radius: 50%;
+      background: conic-gradient(
+        from 0deg,
+        transparent 0%,
+        var(--accent-purple) 25%,
+        var(--accent-cyan) 50%,
+        var(--accent-purple) 75%,
+        transparent 100%
+      );
+      filter: blur(8px);
+      opacity: 0.85;
+      animation: rotateCorona 16s linear infinite;
+      mask: radial-gradient(circle, transparent 58%, #fff 60%);
+      -webkit-mask: radial-gradient(circle, transparent 58%, #fff 60%);
+    }
+
+    /* Eclipse physical sphere */
+    .eclipse-orb {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: radial-gradient(
+        circle at 35% 35%,
+        rgba(26, 26, 36, 0.95) 0%,
+        rgba(8, 8, 12, 0.99) 70%,
+        rgba(0, 0, 0, 1) 100%
+      );
+      box-shadow: 
+        inset 4px 4px 10px rgba(255, 255, 255, 0.08),
+        inset -10px -10px 25px rgba(0, 0, 0, 0.95),
+        var(--eclipse-glow);
+      cursor: pointer;
+      transition: var(--transition-smooth);
+    }
+
+    .eclipse-orb::before {
+      content: '';
+      position: absolute;
+      top: 10%;
+      left: 10%;
+      width: 80%;
+      height: 80%;
+      border-radius: 50%;
+      background: radial-gradient(
+        circle at 30% 30%,
+        rgba(255, 255, 255, 0.12) 0%,
+        transparent 60%
+      );
+      pointer-events: none;
+    }
+
+    .eclipse-orb::after {
+      content: '';
+      position: absolute;
+      top: 4px;
+      left: 4px;
+      right: 4px;
+      bottom: 4px;
+      border-radius: 50%;
+      border: 1.5px solid rgba(255, 255, 255, 0.08);
+      pointer-events: none;
+    }
+
+    .eclipse-orb:hover {
+      transform: scale(1.03);
+      box-shadow: 
+        inset 4px 4px 12px rgba(255, 255, 255, 0.12),
+        inset -10px -10px 30px rgba(0, 0, 0, 0.95),
+        0 0 60px 15px hsla(271, 91%, 65%, 0.45),
+        0 0 120px 40px hsla(190, 90%, 50%, 0.25);
+    }
+
+    /* Sphere Scroll down button */
+    .eclipse-scroll-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(10, 10, 14, 0.75);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-secondary);
+      transition: var(--transition-smooth);
+      pointer-events: auto;
+      z-index: 20;
+    }
+
+    .eclipse-scroll-btn:hover {
+      background: #fff;
+      border-color: #fff;
+      color: #000;
+      transform: translateY(2px) scale(1.06);
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.4);
+    }
+
+    /* Satellite track */
+    .orbital-satellite {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 0 15px 4px #fff, 0 0 30px 10px var(--accent-cyan);
+      z-index: 12;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      transition: transform 0.12s cubic-bezier(0.1, 0.8, 0.3, 1);
+    }
+
+    .orbital-ring {
+      position: absolute;
+      top: -25px;
+      left: -25px;
+      right: -25px;
+      bottom: -25px;
+      border: 1px dashed rgba(255, 255, 255, 0.15);
+      border-radius: 50%;
+      pointer-events: none;
+      animation: rotateCorona 45s linear infinite reverse;
+    }
+
+    .hero-tagline {
+      font-size: 1.35rem;
+      font-weight: 400;
+      color: var(--text-secondary);
+      max-width: 600px;
+      margin-bottom: 32px;
+      letter-spacing: 0.2px;
+      animation: fadeIn 1.2s ease-out;
+    }
+
+    /* Glassmorphic input box */
+    .prompt-container {
+      width: 100%;
+      max-width: 720px;
+      background: var(--panel-glass);
+      backdrop-filter: blur(24px);
+      border: 1px solid var(--border-glass);
+      border-radius: 20px;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+      transition: var(--transition-smooth);
+      margin-bottom: 36px;
+      position: relative;
+    }
+
+    .prompt-container::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 20px;
+      padding: 1.5px;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), transparent 50%, rgba(255, 255, 255, 0.02));
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      mask-composite: exclude;
+      -webkit-mask-composite: xor;
+      pointer-events: none;
+    }
+
+    .prompt-container:focus-within {
+      border-color: var(--border-glass-glow);
+      box-shadow: 
+        0 20px 50px rgba(0, 0, 0, 0.45),
+        0 0 25px rgba(168, 85, 247, 0.15);
+      transform: translateY(-2px);
+    }
+
+    .prompt-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      font-size: 1.1rem;
+      font-weight: 400;
+      resize: none;
+      min-height: 48px;
+      max-height: 120px;
+      display: flex;
+      align-items: center;
+      padding-top: 10px;
+      line-height: 1.5;
+    }
+
+    .prompt-input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .prompt-submit {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition-smooth);
+      color: var(--text-secondary);
+    }
+
+    .prompt-submit:hover {
+      background: var(--accent-purple);
+      border-color: var(--accent-purple);
+      color: #fff;
+      box-shadow: var(--glow-purple);
+      transform: scale(1.08);
+    }
+
+    .prompt-submit svg {
+      width: 20px;
+      height: 20px;
+      transition: var(--transition-smooth);
+    }
+
+    .prompt-submit:hover svg {
+      transform: translateY(-2px);
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 20px;
+      z-index: 10;
+    }
+
+    .btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 14px 28px;
+      border-radius: 99px;
+      font-family: var(--font-sans);
+      font-size: 1.05rem;
+      font-weight: 600;
+      transition: var(--transition-smooth);
+    }
+
+    .btn-primary {
+      background: #fff;
+      color: #000;
+      border: 1px solid #fff;
+    }
+
+    .btn-primary:hover {
+      background: transparent;
+      color: #fff;
+      border-color: rgba(255, 255, 255, 0.4);
+      box-shadow: 0 0 25px rgba(255, 255, 255, 0.15);
+      transform: translateY(-2px);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--text-primary);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.06);
+      border-color: var(--accent-purple);
+      box-shadow: var(--glow-purple);
+      transform: translateY(-2px);
+    }
+
+    /* ==========================================================================
+       CodeQuest IDE / Playground View
+       ========================================================================== */
+    .playground-view {
+      height: calc(100vh - var(--header-height));
+      display: grid;
+      grid-template-columns: 380px 1fr 400px;
+      position: relative;
+      overflow: hidden;
+      border-top: 1px solid var(--border-glass);
+    }
+
+    .mentor-panel {
+      background: rgba(10, 10, 14, 0.35);
+      backdrop-filter: blur(16px);
+      border-right: 1px solid var(--border-glass);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .quest-header {
+      padding: 20px;
+      border-bottom: 1px solid var(--border-glass);
+    }
+
+    .quest-badge {
+      display: inline-block;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--accent-cyan);
+      margin-bottom: 6px;
+    }
+
+    .quest-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      line-height: 1.3;
+    }
+
+    .quest-description {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+      margin-top: 8px;
+    }
+
+    .mentor-chat-area {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .chat-bubble {
+      max-width: 85%;
+      padding: 14px 18px;
+      border-radius: 18px;
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+
+    .chat-bubble.mentor {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-glass);
+      align-self: flex-start;
+      border-top-left-radius: 4px;
+    }
+
+    .chat-bubble.user {
+      background: rgba(168, 85, 247, 0.12);
+      border: 1px solid rgba(168, 85, 247, 0.2);
+      align-self: flex-end;
+      border-top-right-radius: 4px;
+    }
+
+    .mentor-avatar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+
+    .avatar-icon {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: radial-gradient(circle, var(--accent-purple) 0%, #000 100%);
+      border: 1px solid var(--accent-purple);
+    }
+
+    .avatar-name {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--accent-purple);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .chat-input-wrapper {
+      padding: 16px;
+      border-top: 1px solid var(--border-glass);
+      background: rgba(8, 8, 12, 0.3);
+    }
+
+    .chat-box {
+      display: flex;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-glass);
+      border-radius: 12px;
+      padding: 8px;
+    }
+
+    .chat-box input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: #fff;
+      padding: 8px 12px;
+      font-family: var(--font-sans);
+      font-size: 0.9rem;
+    }
+
+    .chat-box button {
+      background: var(--accent-purple);
+      border: none;
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      transition: var(--transition-fast);
+    }
+
+    .chat-box button:hover {
+      transform: scale(1.05);
+      box-shadow: var(--glow-purple);
+    }
+
+    .editor-workspace {
+      display: grid;
+      grid-template-rows: 1fr 280px;
+      border-right: 1px solid var(--border-glass);
+    }
+
+    .editor-header-bar {
+      height: 48px;
+      background: rgba(13, 13, 17, 0.5);
+      border-bottom: 1px solid var(--border-glass);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+    }
+
+    .editor-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    .editor-badge {
+      padding: 2px 8px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    .editor-actions {
+      display: flex;
+      gap: 12px;
+    }
+
+    .btn-sm {
+      padding: 6px 14px;
+      font-size: 0.85rem;
+      border-radius: 6px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: var(--transition-fast);
+    }
+
+    .btn-sm-primary {
+      background: var(--accent-purple);
+      border: 1px solid var(--accent-purple);
+      color: #fff;
+    }
+
+    .btn-sm-primary:hover {
+      box-shadow: var(--glow-purple);
+      transform: translateY(-1px);
+    }
+
+    .btn-sm-secondary {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-glass);
+      color: var(--text-primary);
+    }
+
+    .btn-sm-secondary:hover {
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .monaco-container-mount {
+      width: 100%;
+      height: 100%;
+      background: #0c0c11; /* Seameless merge background */
+      position: relative;
+    }
+
+    .console-panel {
+      background: rgba(6, 6, 8, 0.6);
+      border-top: 1px solid var(--border-glass);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .console-header {
+      height: 40px;
+      background: rgba(10, 10, 14, 0.6);
+      border-bottom: 1px solid var(--border-glass);
+      padding: 0 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .console-title {
+      font-family: var(--font-sans);
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+
+    .console-clear {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      transition: var(--transition-fast);
+    }
+
+    .console-clear:hover {
+      color: var(--accent-cyan);
+    }
+
+    .console-logs {
+      flex: 1;
+      padding: 16px 20px;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .console-log-row {
+      line-height: 1.6;
+    }
+
+    .console-log-row.info {
+      color: var(--text-secondary);
+    }
+
+    .console-log-row.success {
+      color: var(--accent-cyan);
+    }
+
+    .console-log-row.error {
+      color: var(--accent-rose);
+    }
+
+    .console-log-row.output {
+      color: var(--text-primary);
+    }
+
+    .assertions-panel {
+      background: rgba(10, 10, 14, 0.35);
+      backdrop-filter: blur(16px);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .tests-header {
+      padding: 20px;
+      border-bottom: 1px solid var(--border-glass);
+    }
+
+    .tests-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+    }
+
+    .tests-progress-bar {
+      width: 100%;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 99px;
+      margin-top: 12px;
+      overflow: hidden;
+    }
+
+    .tests-progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent-purple) 0%, var(--accent-cyan) 100%);
+      border-radius: 99px;
+      transition: width 0.4s ease;
+    }
+
+    .assertions-list {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .assertion-card {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-glass);
+      border-radius: 12px;
+      padding: 14px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      transition: var(--transition-fast);
+    }
+
+    .assertion-card:hover {
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .assertion-status-icon {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .assertion-status-icon.pending {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .assertion-status-icon.passed {
+      background: rgba(6, 182, 212, 0.15);
+      border: 1px solid var(--accent-cyan);
+      color: var(--accent-cyan);
+    }
+
+    .assertion-status-icon.failed {
+      background: rgba(244, 63, 94, 0.15);
+      border: 1px solid var(--accent-rose);
+      color: var(--accent-rose);
+    }
+
+    .assertion-details {
+      flex: 1;
+    }
+
+    .assertion-name {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .assertion-desc {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      margin-top: 4px;
+    }
+
+    #success-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(3, 3, 5, 0.9);
+      backdrop-filter: blur(20px);
+      z-index: 1000;
+      display: none; /* Triggered on successful evaluate */
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      animation: fadeIn 0.4s ease-out;
+    }
+
+    .success-card {
+      text-align: center;
+      max-width: 500px;
+      padding: 40px;
+      background: var(--panel-glass);
+      border: 1px solid rgba(168, 85, 247, 0.2);
+      border-radius: 24px;
+      box-shadow: var(--eclipse-glow);
+    }
+
+    .success-badge-icon {
+      width: 90px;
+      height: 90px;
+      border-radius: 50%;
+      background: radial-gradient(circle, var(--accent-cyan) 0%, var(--accent-purple) 100%);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 40px rgba(168, 85, 247, 0.4);
+      margin-bottom: 24px;
+      animation: badgeFloating 3s infinite ease-in-out alternate;
+    }
+
+    .success-badge-icon svg {
+      width: 44px;
+      height: 44px;
+      color: #fff;
+    }
+
+    .success-title {
+      font-size: 2.2rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #fff 40%, var(--accent-cyan) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 12px;
+    }
+
+    .success-text {
+      color: var(--text-secondary);
+      line-height: 1.6;
+      margin-bottom: 30px;
+    }
+
+    /* ==========================================================================
+       Pathways / Course Browser View
+       ========================================================================== */
+    .pathways-view {
+      padding: 40px;
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .view-header {
+      margin-bottom: 40px;
+    }
+
+    .view-title-main {
+      font-size: 2.5rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+
+    .view-subtitle {
+      color: var(--text-secondary);
+      margin-top: 8px;
+    }
+
+    .pathways-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 30px;
+    }
+
+    .path-card {
+      background: var(--panel-glass);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border-glass);
+      border-radius: 20px;
+      padding: 30px;
+      transition: var(--transition-smooth);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .path-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: linear-gradient(90deg, var(--accent-purple), var(--accent-cyan));
+      opacity: 0;
+      transition: var(--transition-smooth);
+    }
+
+    .path-card:hover {
+      transform: translateY(-6px);
+      border-color: rgba(255, 255, 255, 0.12);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), var(--glow-purple);
+    }
+
+    .path-card:hover::before {
+      opacity: 1;
+    }
+
+    .path-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-glass);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 24px;
+      color: var(--accent-purple);
+      transition: var(--transition-smooth);
+    }
+
+    .path-card:hover .path-icon {
+      background: var(--accent-purple);
+      color: #fff;
+      border-color: var(--accent-purple);
+      box-shadow: var(--glow-purple);
+    }
+
+    .path-title {
+      font-size: 1.35rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .path-desc {
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      margin-bottom: 24px;
+      flex: 1;
+    }
+
+    .path-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 1px solid var(--border-glass);
+      padding-top: 16px;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .path-progress {
+      color: var(--accent-cyan);
+    }
+
+    .path-xp {
+      color: var(--accent-amber);
+    }
+
+    /* ==========================================================================
+       Leaderboard View Styles
+       ========================================================================== */
+    .leaderboard-view {
+      padding: 40px;
+      max-width: 800px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .leaderboard-container {
+      background: var(--panel-glass);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border-glass);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    }
+
+    .leaderboard-row {
+      display: grid;
+      grid-template-columns: 80px 1fr 120px 100px;
+      align-items: center;
+      padding: 18px 30px;
+      border-bottom: 1px solid var(--border-glass);
+      transition: var(--transition-fast);
+    }
+
+    .leaderboard-row:last-child {
+      border-bottom: none;
+    }
+
+    .leaderboard-row.header-row {
+      background: rgba(255, 255, 255, 0.02);
+      font-weight: 700;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .leaderboard-row:not(.header-row):hover {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .leaderboard-rank {
+      font-weight: 800;
+      font-size: 1.1rem;
+      color: var(--text-secondary);
+    }
+
+    .leaderboard-row:nth-child(2) .leaderboard-rank {
+      color: var(--accent-amber);
+      text-shadow: var(--glow-amber);
+    }
+
+    .leaderboard-row:nth-child(3) .leaderboard-rank {
+      color: var(--text-secondary);
+    }
+
+    .leaderboard-row:nth-child(4) .leaderboard-rank {
+      color: hsl(28, 56%, 45%);
+    }
+
+    .leaderboard-user {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .user-avatar-mini {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: radial-gradient(circle, var(--accent-cyan) 0%, var(--accent-purple) 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 700;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .leaderboard-name {
+      font-weight: 600;
+      font-size: 1rem;
+    }
+
+    .leaderboard-xp {
+      color: var(--accent-cyan);
+      font-weight: 700;
+    }
+
+    .leaderboard-streak {
+      color: var(--accent-amber);
+      font-weight: 600;
+    }
+
+    /* ==========================================================================
+       Animations & Keyframes
+       ========================================================================== */
+    @keyframes logoPulse {
+      0% { transform: scale(1); box-shadow: 0 0 10px var(--accent-purple); }
+      100% { transform: scale(1.08); box-shadow: 0 0 20px var(--accent-purple), 0 0 35px var(--accent-cyan); }
+    }
+
+    @keyframes rotateCorona {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    @keyframes glitchText {
+      0% { text-shadow: -2px 0 0 rgba(255, 0, 80, 0.35), 2px 0 0 rgba(0, 240, 255, 0.35); }
+      25% { text-shadow: -1px 2px 0 rgba(255, 0, 80, 0.25), 3px -1px 0 rgba(0, 240, 255, 0.25); }
+      50% { text-shadow: 2px -1px 0 rgba(255, 0, 80, 0.35), -2px 2px 0 rgba(0, 240, 255, 0.35); }
+      75% { text-shadow: -3px -1px 0 rgba(255, 0, 80, 0.25), 1px 3px 0 rgba(0, 240, 255, 0.25); }
+      100% { text-shadow: -2px 0 0 rgba(255, 0, 80, 0.35), 2px 0 0 rgba(0, 240, 255, 0.35); }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes badgeFloating {
+      0% { transform: translateY(0px) rotate(0deg); }
+      100% { transform: translateY(-12px) rotate(5deg); }
+    }
+
+    /* ==========================================================================
+       Responsive Adaptation
+       ========================================================================== */
+    @media (max-width: 1200px) {
+      .playground-view {
+        grid-template-columns: 320px 1fr 340px;
+      }
+    }
+
+    @media (max-width: 992px) {
+      .playground-view {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 500px auto auto;
+        height: auto;
+        overflow-y: auto;
+      }
+      .mentor-panel, .editor-workspace, .assertions-panel {
+        border-right: none;
+        border-bottom: 1px solid var(--border-glass);
+        height: 600px;
+      }
+      .console-panel {
+        height: 300px;
+      }
+      .title-bg {
+        font-size: 4.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Custom cursor hollow circle tracker -->
+  <div id="custom-cursor"></div>
+
+  <!-- Background Space Starfield Particle Canvas -->
+  <canvas id="starfield"></canvas>
+
+  <div id="app-container">
+    
+    <!-- ==========================================================================
+         Navigation Header
+         ========================================================================== -->
+    <header>
+      <a href="#" class="logo-container" id="nav-logo">
+        <div class="logo-orb" style="display: flex; align-items: center; justify-content: center;">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b" stroke-width="1">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+          </svg>
+        </div>
+        <div style="display: flex; flex-direction: column; line-height: 1.05; text-align: left;">
+          <span class="logo-text" style="font-size: 1.15rem; font-weight: 800; letter-spacing: 0.2px;">CodeQuest</span>
+          <span class="logo-subtext" style="font-size: 1.15rem; font-weight: 800; color: #fff; letter-spacing: 0.2px;">AI</span>
+        </div>
+      </a>
+      
+      <nav>
+        <a href="#playground" class="nav-link" data-view="playground">Learn</a>
+        <a href="#pathways" class="nav-link" data-view="pathways">Courses</a>
+        <a href="#leaderboard" class="nav-link" data-view="leaderboard">Leagues</a>
+        <a href="#friends" class="nav-link" data-view="friends">Friends</a>
+        <a href="#download" class="nav-link" data-view="download">Download</a>
+      </nav>
+      
+      <div class="user-status">
+        <div class="streak-pill">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
+          </svg>
+          <span id="header-streak">3 Day Streak</span>
+        </div>
+        <div class="xp-badge">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+          </svg>
+          <span id="header-xp">420 XP</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- ==========================================================================
+         View Containers (SPA)
+         ========================================================================== -->
+    <main class="view-container">
+
+      <!-- 🪐 VIEW 1: HERO / LANDING VIEW -->
+      <section id="view-home" class="view-section active">
+        <div class="hero-content">
+          <div class="hero-title-wrapper">
+            <h1 class="title-bg">CodeQuest</h1>
+            
+            <!-- Sleek Interactive Gloss Eclipse Orb -->
+            <div class="eclipse-container" id="eclipse-interactive">
+              <div class="orbital-ring"></div>
+              <div class="eclipse-corona"></div>
+              <div class="eclipse-orb" style="display: flex; align-items: flex-end; justify-content: center; padding-bottom: 20px;">
+                <!-- Center downward scroll arrow button -->
+                <div class="eclipse-scroll-btn">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19"/>
+                    <polyline points="19 12 12 19 5 12"/>
+                  </svg>
+                </div>
+              </div>
+              <div class="orbital-satellite" id="satellite-cursor"></div>
+            </div>
+          </div>
+          
+          <p class="hero-tagline">Seeking the optimal path from beginner to expert coder</p>
+          
+          <!-- Glassmorphic Search / AI Input Area -->
+          <div class="prompt-container">
+            <textarea class="prompt-input" id="hero-query-input" placeholder="Throw me a hard one. I'm ready." rows="1"></textarea>
+            <button class="prompt-submit" id="hero-query-submit" aria-label="Submit query">
+              <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 10.5L12 3m0 0l7.5 7.5M12 3v18"/>
+              </svg>
+            </button>
+          </div>
+          
+          <div class="hero-actions">
+            <button class="btn btn-primary" id="btn-start-learning">Start Learning</button>
+            <button class="btn btn-secondary" id="btn-browse-courses">Browse Courses</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 📚 VIEW 2: PATHWAYS / COURSE VIEW -->
+      <section id="view-pathways" class="view-section">
+        <div class="pathways-view">
+          <div class="view-header">
+            <h2 class="view-title-main">Learning Pathways</h2>
+            <p class="view-subtitle">Select a questline and scale your coding abilities across the universe.</p>
+          </div>
+          
+          <div class="pathways-grid" id="pathways-container">
+            <!-- Dynamic Pathway cards loaded from JS -->
+          </div>
+        </div>
+      </section>
+
+      <!-- 💻 VIEW 3: PLAYGROUND / IDE VIEW -->
+      <section id="view-playground" class="view-section">
+        <div class="playground-view">
+          
+          <!-- Left Sidebar Panel: AI Mentor & Instruction -->
+          <aside class="mentor-panel">
+            <div class="quest-header">
+              <div class="quest-badge" id="sidebar-quest-level">Quest 01</div>
+              <h3 class="quest-title" id="sidebar-quest-title">Loading Quest...</h3>
+              <p class="quest-description" id="sidebar-quest-desc">Initialize your environment to scale the domain.</p>
+            </div>
+            
+            <div class="mentor-chat-area" id="mentor-chat-log">
+              <!-- Chat bubbles printed dynamically here -->
+            </div>
+            
+            <div class="chat-input-wrapper">
+              <div class="chat-box">
+                <input type="text" id="mentor-chat-input" placeholder="Ask AI Mentor for a hint..." />
+                <button id="mentor-chat-send" aria-label="Send message">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="22" y1="2" x2="11" y2="13"/>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </aside>
+          
+          <!-- Middle Panel: Monaco IDE & Console -->
+          <main class="editor-workspace">
+            <div class="editor-header-bar">
+              <div class="editor-title">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--accent-purple);">
+                  <path d="M14.5 17.5L3 6V3h3l11.5 11.5"/>
+                  <path d="M13 19h9"/>
+                  <path d="M16 9l6-6"/>
+                </svg>
+                <span id="active-file-label">solution.js</span>
+                <span class="editor-badge" id="active-lang-badge">JS</span>
+              </div>
+              <div class="editor-actions">
+                <button class="btn-sm btn-sm-secondary" id="btn-reset-code">Reset</button>
+                <button class="btn-sm btn-sm-primary" id="btn-run-code">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                    <polygon points="5 3 19 12 5 21 5 3"/>
+                  </svg>
+                  Run Code
+                </button>
+              </div>
+            </div>
+            
+            <!-- Monaco mounting container -->
+            <div id="monaco-editor-mount" class="monaco-container-mount"></div>
+            
+            <!-- Interactive Output Console -->
+            <div class="console-panel">
+              <div class="console-header">
+                <span class="console-title">Execution Console</span>
+                <span class="console-clear" id="btn-clear-console">Clear</span>
+              </div>
+              <div class="console-logs" id="console-log-mount">
+                <div class="console-log-row info">Console initialized. Ready to execute code...</div>
+              </div>
+            </div>
+          </main>
+          
+          <!-- Right Panel: Assertions & Tests -->
+          <aside class="assertions-panel">
+            <div class="tests-header">
+              <h3 class="tests-title">Quest Unit Tests</h3>
+              <div class="tests-progress-bar">
+                <div class="tests-progress-fill" id="test-progress-bar"></div>
+              </div>
+            </div>
+            
+            <div class="assertions-list" id="assertions-container-list">
+              <!-- Assertion cards loaded dynamically -->
+            </div>
+          </aside>
+          
+        </div>
+      </section>
+
+      <!-- 🏆 VIEW 4: LEADERBOARD VIEW -->
+      <section id="view-leaderboard" class="view-section">
+        <div class="leaderboard-view">
+          <div class="view-header">
+            <h2 class="view-title-main">Coders' Guild Leaderboard</h2>
+            <p class="view-subtitle">Top algorithm sorcerers optimizing conversion from energy to intelligence.</p>
+          </div>
+          
+          <div class="leaderboard-container">
+            <div class="leaderboard-row header-row">
+              <div class="leaderboard-rank">Rank</div>
+              <div>Coder</div>
+              <div>Experience</div>
+              <div>Streak</div>
+            </div>
+            <div id="leaderboard-container-list">
+              <!-- Leaderboard rows loaded dynamically -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+    
+  </div>
+
+  <!-- ==========================================================================
+       Success Splash Screen / Quest Completed Overlay
+       ========================================================================== -->
+  <div id="success-overlay">
+    <div class="success-card">
+      <div class="success-badge-icon">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z"/>
+        </svg>
+      </div>
+      <h3 class="success-title">Quest Unlocked!</h3>
+      <p class="success-text" id="success-message-text">Congratulations! Your solution optimized perfectly and passed all unit test vectors. +150 XP awarded.</p>
+      <button class="btn btn-primary" style="margin: 0 auto;" id="btn-next-quest">Embark on Next Quest</button>
+    </div>
+  </div>
+
+  <!-- Monaco loader configuration CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js"></script>
+
+  <!-- ==========================================================================
+       Javascript (High-Fidelity SPA State & Game Engine)
+       ========================================================================== -->
+  <script>
+    // Global App States
+    const state = {
+      currentView: 'home',
+      userXP: 420,
+      userStreak: 3,
+      activeQuestIndex: 0,
+      editorInstance: null,
+      activeConsoleLogs: [],
+      quests: [
+        {
+          level: "Quest 01",
+          title: "The Sum of Stars",
+          category: "Syntax Sorcery",
+          desc: "Implement a function `sumOfStars(n)` that returns the cumulative sum of all integers from 1 to `n` inclusive. Optimize it to scale across large inputs.",
+          lang: "javascript",
+          initialCode: `/**\n * Optimize the cumulative summation.\n * @param {number} n\n * @return {number}\n */\nfunction sumOfStars(n) {\n  // Write your code here\n  \n}`,
+          tests: [
+            { id: 1, name: "Base Vector", desc: "sumOfStars(5) should return 15", fn: (code) => {
+              const sumOfStars = eval(`(${code})`);
+              return sumOfStars(5) === 15;
+            }},
+            { id: 2, name: "Identity Boundary", desc: "sumOfStars(1) should return 1", fn: (code) => {
+              const sumOfStars = eval(`(${code})`);
+              return sumOfStars(1) === 1;
+            }},
+            { id: 3, name: "Cosmic Scale", desc: "sumOfStars(100) should return 5050", fn: (code) => {
+              const sumOfStars = eval(`(${code})`);
+              return sumOfStars(100) === 5050;
+            }}
+          ],
+          hints: [
+            "You can use a simple `for` loop that iterates from 1 to `n` accumulating the sum.",
+            "To achieve maximum mathematical optimization, recall Carl Friedrich Gauss's formula: `n * (n + 1) / 2`. This runs in O(1) time complexity!"
+          ]
+        },
+        {
+          level: "Quest 02",
+          title: "The Recursion Singularity",
+          category: "Algorithm Odyssey",
+          desc: "Write a recursive function `factorial(n)` to calculate factorials. Your function must utilize recursion to pass the structural analysis check.",
+          lang: "javascript",
+          initialCode: `/**\n * Recursively compute factorials.\n * @param {number} n\n * @return {number}\n */\nfunction factorial(n) {\n  // Write your recursive code here\n  \n}`,
+          tests: [
+            { id: 1, name: "Singularity Base", desc: "factorial(0) should return 1", fn: (code) => {
+              const factorial = eval(`(${code})`);
+              return factorial(0) === 1;
+            }},
+            { id: 2, name: "Vector Check", desc: "factorial(5) should return 120", fn: (code) => {
+              const factorial = eval(`(${code})`);
+              return factorial(5) === 120;
+            }},
+            { id: 3, name: "Recursion Validation", desc: "Function must call itself", fn: (code) => {
+              return code.includes('factorial') && (code.match(/factorial/g) || []).length > 1;
+            }}
+          ],
+          hints: [
+            "Don't forget your base case! If `n === 0`, return 1 to stop the infinite stack recursion.",
+            "For the recursive step, return `n * factorial(n - 1)`."
+          ]
+        },
+        {
+          level: "Quest 03",
+          title: "Space Debris Filtering",
+          category: "Crucible",
+          desc: "Implement a function `removeDebris(arr, limit)` that filters out any object from the debris array whose `weight` property is strictly greater than the given `limit` threshold.",
+          lang: "javascript",
+          initialCode: `/**\n * Filter space debris under weight limit.\n * @param {Array} arr\n * @param {number} limit\n * @return {Array}\n */\nfunction removeDebris(arr, limit) {\n  // Write your code here\n  \n}`,
+          tests: [
+            { id: 1, name: "Filter Vector", desc: "Filters out items heavier than limit", fn: (code) => {
+              const removeDebris = eval(`(${code})`);
+              const dataset = [{id: 1, weight: 10}, {id: 2, weight: 50}, {id: 3, weight: 25}];
+              const res = removeDebris(dataset, 30);
+              return res.length === 2 && res[0].weight === 10 && res[1].weight === 25;
+            }},
+            { id: 2, name: "Empty Space", desc: "Handles empty array inputs", fn: (code) => {
+              const removeDebris = eval(`(${code})`);
+              return removeDebris([], 100).length === 0;
+            }},
+            { id: 3, name: "Absolute Nullifier", desc: "Filters all items if limit is 0", fn: (code) => {
+              const removeDebris = eval(`(${code})`);
+              const dataset = [{id: 1, weight: 10}, {id: 2, weight: 50}];
+              return removeDebris(dataset, 0).length === 0;
+            }}
+          ],
+          hints: [
+            "You can use JavaScript's built-in array `.filter()` method for an elegant one-line solution.",
+            "Example syntax: `return arr.filter(item => item.weight <= limit);`"
+          ]
+        }
+      ]
+    };
+
+    /* ==========================================================================
+       1. Canvas Starfield Background
+       ========================================================================== */
+    function initStarfield() {
+      const canvas = document.getElementById('starfield');
+      const ctx = canvas.getContext('2d');
+      let stars = [];
+      const numStars = 80;
+      
+      function resize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      }
+      
+      window.addEventListener('resize', resize);
+      resize();
+      
+      class Star {
+        constructor() {
+          this.reset();
+          this.y = Math.random() * canvas.height;
+        }
+        
+        reset() {
+          this.x = Math.random() * canvas.width;
+          this.y = 0;
+          this.size = Math.random() * 1.5 + 0.5;
+          this.speed = Math.random() * 0.5 + 0.1;
+          this.alpha = Math.random() * 0.6 + 0.2;
+          this.glow = Math.random() > 0.8;
+        }
+        
+        update() {
+          this.y += this.speed;
+          if (this.y > canvas.height) {
+            this.reset();
+          }
+        }
+        
+        draw() {
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(255, 255, 255, ${this.alpha})`;
+          ctx.fill();
+          
+          if (this.glow) {
+            ctx.shadowBlur = 8;
+            ctx.shadowColor = '#a855f7';
+          } else {
+            ctx.shadowBlur = 0;
+          }
+        }
+      }
+      
+      for (let i = 0; i < numStars; i++) {
+        stars.push(new Star());
+      }
+      
+      function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = 'rgba(3, 3, 5, 0.2)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        stars.forEach(star => {
+          star.update();
+          star.draw();
+        });
+        
+        requestAnimationFrame(animate);
+      }
+      
+      animate();
+    }
+
+    /* ==========================================================================
+       2. Interactive Eclipse Mouse-Tethered Orbit
+       ========================================================================== */
+    function initInteractiveEclipse() {
+      const container = document.getElementById('eclipse-interactive');
+      const satellite = document.getElementById('satellite-cursor');
+      if (!container || !satellite) return;
+      
+      let rect = container.getBoundingClientRect();
+      window.addEventListener('resize', () => {
+        rect = container.getBoundingClientRect();
+      });
+      
+      let isHovered = false;
+      let angle = 0;
+      let autoOrbitSpeed = 0.015;
+      
+      container.addEventListener('mouseenter', () => {
+        isHovered = true;
+      });
+      
+      container.addEventListener('mouseleave', () => {
+        isHovered = false;
+      });
+      
+      window.addEventListener('mousemove', (e) => {
+        if (!isHovered) return;
+        
+        const center = {
+          x: rect.left + rect.width / 2,
+          y: rect.top + rect.height / 2
+        };
+        
+        const dx = e.clientX - center.x;
+        const dy = e.clientY - center.y;
+        
+        angle = Math.atan2(dy, dx);
+        updateSatellitePos(angle, 135);
+      });
+      
+      function updateSatellitePos(rad, radius) {
+        const x = Math.cos(rad) * radius;
+        const y = Math.sin(rad) * radius;
+        satellite.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`;
+      }
+      
+      function orbitLoop() {
+        if (!isHovered) {
+          angle += autoOrbitSpeed;
+          updateSatellitePos(angle, 135);
+        }
+        requestAnimationFrame(orbitLoop);
+      }
+      
+      orbitLoop();
+    }
+
+    /* ==========================================================================
+       3. Single Page Router
+       ========================================================================== */
+    function setupRouter() {
+      const navLinks = document.querySelectorAll('.nav-link');
+      
+      navLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+          e.preventDefault();
+          const targetView = link.getAttribute('data-view');
+          navigateTo(targetView);
+        });
+      });
+      
+      document.getElementById('nav-logo').addEventListener('click', (e) => {
+        e.preventDefault();
+        navigateTo('home');
+      });
+      
+      window.addEventListener('hashchange', () => {
+        const hash = window.location.hash.slice(1) || 'home';
+        navigateTo(hash, false);
+      });
+      
+      const initialHash = window.location.hash.slice(1) || 'home';
+      navigateTo(initialHash);
+    }
+
+    function navigateTo(viewId, updateHash = true) {
+      const sections = document.querySelectorAll('.view-section');
+      const navLinks = document.querySelectorAll('.nav-link');
+      
+      const targetSection = document.getElementById(`view-${viewId}`);
+      if (!targetSection) return;
+      
+      state.currentView = viewId;
+      if (updateHash) {
+        window.location.hash = viewId;
+      }
+      
+      sections.forEach(sec => {
+        sec.classList.remove('active');
+      });
+      
+      targetSection.classList.add('active');
+      
+      navLinks.forEach(link => {
+        link.classList.remove('active');
+        if (link.getAttribute('data-view') === viewId) {
+          link.classList.add('active');
+        }
+      });
+      
+      if (viewId === 'playground') {
+        ensureMonacoLoaded();
+      }
+      
+      const eclipse = document.getElementById('eclipse-interactive');
+      if (eclipse) {
+        setTimeout(() => {
+          window.dispatchEvent(new Event('resize'));
+        }, 100);
+      }
+    }
+
+    /* ==========================================================================
+       4. Monaco Editor Proxy & File-system Loader Config
+       ========================================================================== */
+    let isMonacoInitialized = false;
+
+    // Direct Web Worker proxy configuration to allow Monaco to work on file:// CORS-free!
+    window.MonacoEnvironment = {
+      getWorkerUrl: function (workerId, label) {
+        return `data:text/javascript;charset=utf-8,${encodeURIComponent(`
+          self.MonacoEnvironment = { baseUrl: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.39.0/min/' };
+          importScripts('https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.39.0/min/vs/base/worker/workerMain.js');
+        `)}`;
+      }
+    };
+
+    function ensureMonacoLoaded() {
+      if (isMonacoInitialized) return;
+      isMonacoInitialized = true;
+      
+      const consoleLogMount = document.getElementById('console-log-mount');
+      consoleLogMount.innerHTML = '<div class="console-log-row info">Loading Monaco Editor packages via CDN...</div>';
+      
+      // Load Monaco Editor dynamically using RequireJS on file system
+      require.config({ paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.39.0/min/vs' } });
+      
+      require(['vs/editor/editor.main'], function () {
+        state.editorInstance = monaco.editor.create(document.getElementById('monaco-editor-mount'), {
+          value: state.quests[state.activeQuestIndex].initialCode,
+          language: state.quests[state.activeQuestIndex].lang,
+          theme: 'vs-dark',
+          fontSize: 14,
+          fontFamily: "'Fira Code', var(--font-mono)",
+          automaticLayout: true,
+          minimap: { enabled: false },
+          lineNumbersMinChars: 3,
+          padding: { top: 16, bottom: 16 },
+          roundedSelection: true,
+          scrollBeyondLastLine: false,
+          cursorBlinking: "smooth",
+          cursorSmoothCaretAnimation: "on"
+        });
+        
+        monaco.editor.defineTheme('space-dark', {
+          base: 'vs-dark',
+          inherit: true,
+          rules: [
+            { token: 'comment', foreground: '5c6370', fontStyle: 'italic' },
+            { token: 'keyword', foreground: 'c678dd' },
+            { token: 'number', foreground: 'd19a66' },
+            { token: 'string', foreground: '98c379' }
+          ],
+          colors: {
+            'editor.background': '#0c0c11',
+            'editor.lineHighlightBackground': '#181824',
+            'editorGutter.background': '#0c0c11',
+            'editorLineNumber.foreground': '#4b5263',
+            'editorLineNumber.activeForeground': '#c678dd'
+          }
+        });
+        monaco.editor.setTheme('space-dark');
+        
+        consoleLogMount.innerHTML = '<div class="console-log-row success">Monaco mounted successfully. Coder workspace activated.</div>';
+        loadQuest(state.activeQuestIndex);
+      });
+    }
+
+    /* ==========================================================================
+       5. Dynamic Quest Loader
+       ========================================================================== */
+    function loadQuest(index) {
+      state.activeQuestIndex = index;
+      const quest = state.quests[index];
+      
+      document.getElementById('sidebar-quest-level').innerText = quest.level;
+      document.getElementById('sidebar-quest-title').innerText = quest.title;
+      document.getElementById('sidebar-quest-desc').innerText = quest.desc;
+      document.getElementById('active-file-label').innerText = `solution.${quest.lang === 'javascript' ? 'js' : 'py'}`;
+      document.getElementById('active-lang-badge').innerText = quest.lang.toUpperCase();
+      
+      if (state.editorInstance) {
+        state.editorInstance.setValue(quest.initialCode);
+        monaco.editor.setModelLanguage(state.editorInstance.getModel(), quest.lang);
+      }
+      
+      clearConsoleLogs();
+      
+      const assertionsContainer = document.getElementById('assertions-container-list');
+      assertionsContainer.innerHTML = '';
+      
+      quest.tests.forEach(test => {
+        const card = document.createElement('div');
+        card.className = 'assertion-card';
+        card.id = `test-card-${test.id}`;
+        card.innerHTML = `
+          <div class="assertion-status-icon pending" id="test-icon-${test.id}"></div>
+          <div class="assertion-details">
+            <div class="assertion-name">${test.name}</div>
+            <div class="assertion-desc">${test.desc}</div>
+          </div>
+        `;
+        assertionsContainer.appendChild(card);
+      });
+      
+      resetMentorChat();
+      updateTestProgressBar(0);
+    }
+
+    /* ==========================================================================
+       6. In-Browser Evaluator Sandbox
+       ========================================================================== */
+    function clearConsoleLogs() {
+      state.activeConsoleLogs = [];
+      const consoleLogMount = document.getElementById('console-log-mount');
+      consoleLogMount.innerHTML = '';
+    }
+
+    function writeConsoleLog(msg, type = 'output') {
+      const consoleLogMount = document.getElementById('console-log-mount');
+      const row = document.createElement('div');
+      row.className = `console-log-row ${type}`;
+      row.innerText = msg;
+      consoleLogMount.appendChild(row);
+      consoleLogMount.scrollTop = consoleLogMount.scrollHeight;
+    }
+
+    function executeCodeSandbox() {
+      if (!state.editorInstance) return;
+      
+      clearConsoleLogs();
+      writeConsoleLog("Compiling evaluation environment...", "info");
+      
+      const userCode = state.editorInstance.getValue();
+      const quest = state.quests[state.activeQuestIndex];
+      
+      const originalLog = console.log;
+      const interceptedLogs = [];
+      console.log = function (...args) {
+        const stringifiedArgs = args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : arg).join(' ');
+        interceptedLogs.push(stringifiedArgs);
+      };
+      
+      let compileError = null;
+      let testsPassed = 0;
+      
+      try {
+        const evaluatedEnvironment = new Function(userCode + "\n// Trigger environment evaluation check");
+        evaluatedEnvironment();
+        
+        interceptedLogs.forEach(log => {
+          writeConsoleLog(log, 'output');
+        });
+      } catch (err) {
+        compileError = err.message;
+        writeConsoleLog(`Compilation Error: ${err.message}`, 'error');
+      } finally {
+        console.log = originalLog;
+      }
+      
+      if (compileError) {
+        quest.tests.forEach(test => {
+          markTestStatus(test.id, 'failed');
+        });
+        updateTestProgressBar(0);
+        triggerMentorFeedback(compileError);
+        return;
+      }
+      
+      writeConsoleLog("Executing test vector assertions...", "info");
+      
+      quest.tests.forEach(test => {
+        try {
+          const isOk = test.fn(userCode);
+          if (isOk) {
+            markTestStatus(test.id, 'passed');
+            testsPassed++;
+          } else {
+            markTestStatus(test.id, 'failed');
+          }
+        } catch (err) {
+          writeConsoleLog(`Assertion error on ${test.name}: ${err.message}`, 'error');
+          markTestStatus(test.id, 'failed');
+        }
+      });
+      
+      const scorePercent = (testsPassed / quest.tests.length) * 100;
+      updateTestProgressBar(scorePercent);
+      
+      if (testsPassed === quest.tests.length) {
+        writeConsoleLog(`All ${quest.tests.length} tests successfully passed! Unlocking level pathways.`, 'success');
+        triggerSuccessOverlay();
+      } else {
+        writeConsoleLog(`${testsPassed}/${quest.tests.length} assertions passed. Please inspect code boundaries.`, 'error');
+        triggerMentorFeedback(null);
+      }
+    }
+
+    function markTestStatus(testId, status) {
+      const icon = document.getElementById(`test-icon-${testId}`);
+      if (!icon) return;
+      
+      icon.className = `assertion-status-icon ${status}`;
+      if (status === 'passed') {
+        icon.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
+      } else if (status === 'failed') {
+        icon.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
+      } else {
+        icon.innerHTML = '';
+      }
+    }
+
+    function updateTestProgressBar(percent) {
+      document.getElementById('test-progress-bar').style.width = `${percent}%`;
+    }
+
+    /* ==========================================================================
+       7. AI Mentor Conversational Simulator
+       ========================================================================== */
+    function resetMentorChat() {
+      const chatLog = document.getElementById('mentor-chat-log');
+      const quest = state.quests[state.activeQuestIndex];
+      
+      chatLog.innerHTML = `
+        <div class="chat-bubble mentor">
+          <div class="mentor-avatar">
+            <div class="avatar-icon"></div>
+            <span class="avatar-name">Mentor Chronos</span>
+          </div>
+          <div>Greetings, Traveler. I am Chronos, your algorithm navigator. For <strong>${quest.title}</strong>, we must seek structural correctness.<br/><br/>You may ask me for a <strong>hint</strong> if you find your parameters stuck in deep space.</div>
+        </div>
+      `;
+    }
+
+    function addChatBubble(sender, text) {
+      const chatLog = document.getElementById('mentor-chat-log');
+      const bubble = document.createElement('div');
+      bubble.className = `chat-bubble ${sender}`;
+      
+      if (sender === 'mentor') {
+        bubble.innerHTML = `
+          <div class="mentor-avatar">
+            <div class="avatar-icon"></div>
+            <span class="avatar-name">Mentor Chronos</span>
+          </div>
+          <div>${text}</div>
+        `;
+      } else {
+        bubble.innerText = text;
+      }
+      
+      chatLog.appendChild(bubble);
+      chatLog.scrollTop = chatLog.scrollHeight;
+    }
+
+    function handleMentorChat() {
+      const inputEl = document.getElementById('mentor-chat-input');
+      const query = inputEl.value.trim();
+      if (!query) return;
+      
+      addChatBubble('user', query);
+      inputEl.value = '';
+      
+      setTimeout(() => {
+        const normalizedQuery = query.toLowerCase();
+        const quest = state.quests[state.activeQuestIndex];
+        let response = "";
+        
+        if (normalizedQuery.includes('hint') || normalizedQuery.includes('stuck') || normalizedQuery.includes('help')) {
+          response = `Here is a navigation coordinate for your quest: <br/><br/>💡 <em>"${quest.hints[Math.floor(Math.random() * quest.hints.length)]}"</em>`;
+        } else if (normalizedQuery.includes('recursive') || normalizedQuery.includes('recursion')) {
+          response = "Recursion is like looking at an eclipse reflecting through parallel mirrors—each step must compute down to an absolute base condition, or the space collapses into infinite loop overflow.";
+        } else if (normalizedQuery.includes('gauss') || normalizedQuery.includes('sum')) {
+          response = "Indeed, the sum of values from 1 to N can be computed either iteratively or mathematically. Gauss's formula `N*(N+1)/2` calculates this instantly at constant energy cost.";
+        } else if (normalizedQuery.includes('error') || normalizedQuery.includes('fail')) {
+          response = "Analyze the test vector constraints on the right panel. Inspect boundaries—check if parameters handle extreme inputs or zero vectors correctly.";
+        } else {
+          response = "To optimize your conversion from energy to intelligence, ensure clean time-complexities and robust logic trees. Let me know if you need specific hint parameters!";
+        }
+        
+        addChatBubble('mentor', response);
+      }, 750);
+    }
+
+    function triggerMentorFeedback(errorMessage) {
+      setTimeout(() => {
+        let response = "";
+        if (errorMessage) {
+          response = `I detected a cosmic disruption in the space-time compilation: <br/><br/>⚠️ <strong style="color: var(--accent-rose);">${errorMessage}</strong><br/><br/>Review your parentheses, brackets, or variable declarations. I am ready to evaluate again once adjusted.`;
+        } else {
+          response = "The test vectors indicate an incomplete alignment. Check your mathematical edge cases. Click <strong>Reset</strong> if you wish to re-evaluate from clean structural baselines, or ask me for a <strong>hint</strong>!";
+        }
+        addChatBubble('mentor', response);
+      }, 500);
+    }
+
+    /* ==========================================================================
+       8. Splash Overlays & Quest Navigation
+       ========================================================================== */
+    function triggerSuccessOverlay() {
+      const overlay = document.getElementById('success-overlay');
+      const msgEl = document.getElementById('success-message-text');
+      const quest = state.quests[state.activeQuestIndex];
+      
+      msgEl.innerHTML = `Excellent execution! Your solution to <strong>${quest.title}</strong> compiled cleanly and satisfied all assertion vectors.<br/><br/><strong>+150 Experience Points (XP)</strong> and <strong>+1 Daily Streak</strong> coordinate unlocked!`;
+      overlay.style.display = 'flex';
+    }
+
+    function closeSuccessOverlay() {
+      document.getElementById('success-overlay').style.display = 'none';
+    }
+
+    function embarkOnNextQuest() {
+      closeSuccessOverlay();
+      
+      state.userXP += 150;
+      state.userStreak += 1;
+      updateUserStats();
+      
+      const nextIndex = (state.activeQuestIndex + 1) % state.quests.length;
+      loadQuest(nextIndex);
+      
+      const consoleLogMount = document.getElementById('console-log-mount');
+      consoleLogMount.innerHTML = '<div class="console-log-row info">Transitioning to next level coordinates. Happy hacking!</div>';
+    }
+
+    function updateUserStats() {
+      document.getElementById('header-xp').innerText = `${state.userXP} XP`;
+      document.getElementById('header-streak').innerText = `${state.userStreak} Day Streak`;
+    }
+
+    /* ==========================================================================
+       9. Dashboards (Pathways & Leaderboards)
+       ========================================================================== */
+    function populatePathways() {
+      const container = document.getElementById('pathways-container');
+      container.innerHTML = '';
+      
+      state.quests.forEach((quest, index) => {
+        const card = document.createElement('article');
+        card.className = 'path-card';
+        
+        let completion = "0%";
+        if (index < state.activeQuestIndex) completion = "100%";
+        else if (index === state.activeQuestIndex) completion = "50%";
+        
+        card.innerHTML = `
+          <div class="path-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="12 2 2 7 12 12 22 7 12 2"/>
+              <polyline points="2 17 12 22 22 17"/>
+              <polyline points="2 12 12 17 22 12"/>
+            </svg>
+          </div>
+          <h3 class="path-title">${quest.title}</h3>
+          <p class="path-desc">${quest.desc}</p>
+          <div class="path-meta">
+            <span class="path-progress">Progress: ${completion}</span>
+            <span class="path-xp">+150 XP</span>
+          </div>
+        `;
+        
+        card.addEventListener('click', () => {
+          loadQuest(index);
+          navigateTo('playground');
+        });
+        
+        container.appendChild(card);
+      });
+    }
+
+    function populateLeaderboard() {
+      const container = document.getElementById('leaderboard-container-list');
+      container.innerHTML = '';
+      
+      const mockLeaderboard = [
+        { rank: 1, name: "AlphaSorcerer", xp: 1850, streak: 12 },
+        { rank: 2, name: "ChronosOptimized", xp: 1540, streak: 8 },
+        { rank: 3, name: "SpaceStackDev", xp: 1200, streak: 6 },
+        { rank: 4, name: "You (Pranav)", xp: state.userXP, streak: state.userStreak },
+        { rank: 5, name: "BinaryEclipse", xp: 380, streak: 2 }
+      ];
+      
+      mockLeaderboard.sort((a, b) => b.xp - a.xp);
+      
+      mockLeaderboard.forEach((user, idx) => {
+        const rankNum = idx + 1;
+        const row = document.createElement('div');
+        row.className = 'leaderboard-row';
+        
+        if (user.name.includes("You")) {
+          row.style.background = 'rgba(168, 85, 247, 0.08)';
+          row.style.borderColor = 'rgba(168, 85, 247, 0.2)';
+        }
+        
+        const initials = user.name.substring(0, 2).toUpperCase();
+        
+        row.innerHTML = `
+          <div class="leaderboard-rank">${rankNum}</div>
+          <div class="leaderboard-user">
+            <div class="user-avatar-mini">${initials}</div>
+            <span class="leaderboard-name">${user.name}</span>
+          </div>
+          <div class="leaderboard-xp">${user.xp} XP</div>
+          <div class="leaderboard-streak">${user.streak}🔥</div>
+        `;
+        
+        container.appendChild(row);
+      });
+    }
+
+    /* ==========================================================================
+       10. Smooth Custom Floating Cursor Engine
+       ========================================================================== */
+    function initCustomCursor() {
+      const cursor = document.getElementById('custom-cursor');
+      if (!cursor) return;
+      
+      let targetX = window.innerWidth / 2;
+      let targetY = window.innerHeight / 2;
+      let cursorX = targetX;
+      let cursorY = targetY;
+      
+      window.addEventListener('mousemove', (e) => {
+        targetX = e.clientX;
+        targetY = e.clientY;
+        cursor.classList.remove('hidden');
+      });
+      
+      document.addEventListener('mouseleave', () => {
+        cursor.classList.add('hidden');
+      });
+      document.addEventListener('mouseenter', () => {
+        cursor.classList.remove('hidden');
+      });
+      
+      // Interpolate coordinates for standard lagging glide
+      function updateCursor() {
+        cursorX += (targetX - cursorX) * 0.16;
+        cursorY += (targetY - cursorY) * 0.16;
+        
+        cursor.style.left = `${cursorX}px`;
+        cursor.style.top = `${cursorY}px`;
+        
+        requestAnimationFrame(updateCursor);
+      }
+      updateCursor();
+      
+      // Dynamic expansion on hover borders
+      document.addEventListener('mouseover', (e) => {
+        const target = e.target;
+        const isInteractive = target.closest('a') || 
+                              target.closest('button') || 
+                              target.closest('.eclipse-orb') ||
+                              target.closest('.eclipse-scroll-btn') ||
+                              target.closest('.assertion-card') ||
+                              target.closest('.path-card') ||
+                              target.closest('.logo-orb') ||
+                              target.closest('.console-clear');
+                              
+        if (isInteractive) {
+          cursor.classList.add('hover');
+          
+          const closestElement = target.closest('a, button, .eclipse-orb, .eclipse-scroll-btn, .path-card, .logo-orb');
+          if (closestElement) {
+            if (closestElement.classList.contains('btn-primary') || closestElement.classList.contains('btn-sm-primary') || closestElement.id === 'mentor-chat-send') {
+              cursor.classList.add('hover-purple');
+            } else if (closestElement.id === 'btn-run-code' || closestElement.classList.contains('logo-orb') || closestElement.closest('.xp-badge')) {
+              cursor.classList.add('hover-amber');
+            } else if (closestElement.closest('.user-status') || closestElement.closest('.path-card')) {
+              cursor.classList.add('hover-cyan');
+            }
+          }
+        }
+        
+        // Disable custom circle completely when hover-focusing editor lines
+        const isMonaco = target.closest('.monaco-container-mount') || 
+                          target.closest('.monaco-editor') ||
+                          target.closest('.monaco-editor *');
+        if (isMonaco) {
+          cursor.classList.add('hidden');
+        }
+      });
+      
+      document.addEventListener('mouseout', (e) => {
+        const target = e.target;
+        const isInteractive = target.closest('a') || 
+                              target.closest('button') || 
+                              target.closest('.eclipse-orb') ||
+                              target.closest('.eclipse-scroll-btn') ||
+                              target.closest('.assertion-card') ||
+                              target.closest('.path-card') ||
+                              target.closest('.logo-orb') ||
+                              target.closest('.console-clear');
+                              
+        if (isInteractive) {
+          cursor.classList.remove('hover', 'hover-purple', 'hover-cyan', 'hover-amber');
+        }
+        
+        const isMonaco = target.closest('.monaco-container-mount') || 
+                          target.closest('.monaco-editor') ||
+                          target.closest('.monaco-editor *');
+        if (isMonaco) {
+          cursor.classList.remove('hidden');
+        }
+      });
+    }
+
+    /* ==========================================================================
+       11. Core Initialization Setup
+       ========================================================================== */
+    function init() {
+      initCustomCursor();
+      initStarfield();
+      initInteractiveEclipse();
+      setupRouter();
+      
+      updateUserStats();
+      
+      const queryInput = document.getElementById('hero-query-input');
+      const querySubmit = document.getElementById('hero-query-submit');
+      
+      function triggerLaunch() {
+        const val = queryInput.value.trim();
+        if (val) {
+          navigateTo('playground');
+          setTimeout(() => {
+            addChatBubble('user', val);
+            setTimeout(() => {
+              addChatBubble('mentor', "A fascinating challenge, traveler! For our active quest coordinates, let's start compiling logic in the code space.");
+            }, 750);
+          }, 500);
+          queryInput.value = '';
+        } else {
+          navigateTo('playground');
+        }
+      }
+      
+      querySubmit.addEventListener('click', triggerLaunch);
+      queryInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          triggerLaunch();
+        }
+      });
+      
+      document.getElementById('btn-start-learning').addEventListener('click', () => {
+        navigateTo('playground');
+      });
+      
+      document.getElementById('btn-browse-courses').addEventListener('click', () => {
+        navigateTo('pathways');
+      });
+      
+      document.getElementById('btn-clear-console').addEventListener('click', clearConsoleLogs);
+      document.getElementById('btn-run-code').addEventListener('click', executeCodeSandbox);
+      
+      document.getElementById('btn-reset-code').addEventListener('click', () => {
+        if (confirm("Reset active editor code vectors back to initial templates?")) {
+          loadQuest(state.activeQuestIndex);
+        }
+      });
+      
+      document.getElementById('mentor-chat-send').addEventListener('click', handleMentorChat);
+      document.getElementById('mentor-chat-input').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          handleMentorChat();
+        }
+      });
+      
+      document.getElementById('btn-next-quest').addEventListener('click', embarkOnNextQuest);
+      
+      populatePathways();
+      populateLeaderboard();
+      
+      // Periodically keep leaderboard XP elements synchronized
+      setInterval(() => {
+        populateLeaderboard();
+      }, 1000);
+    }
+
+    // Fire initial setup on load
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>
